@@ -1,37 +1,27 @@
 # FrameForge — AI Video Studio
 
-A responsive AI video-generation website powered by OpenRouter and Cloudflare Pages Functions.
+A responsive AI video-generation website powered by OpenRouter and Cloudflare Workers.
 
 ## Features
 - Live OpenRouter video-model catalog
 - Responsive cinematic UI with prompt, aspect ratio, duration, resolution, and optional audio controls
 - Asynchronous generation status polling, video preview, and download
-- OpenRouter key stays server-side in a Cloudflare secret
-- No frontend build step required
+- OpenRouter API key stays server-side in a Cloudflare secret
+- Static assets served by Cloudflare Workers Static Assets; no frontend build step required
 
-## Deploy on Cloudflare
+## Deploy
 
-This repository uses **Cloudflare Pages Functions**, not a standalone Workers entry point. Do not use `npx wrangler deploy` as the deploy command; it targets a Workers deployment and can fail for this Pages project.
+This repository is configured as a **Cloudflare Worker with Static Assets**, so the configured command `npx wrangler deploy` works. It is no longer configured as a Pages project.
 
-### Option A — Recommended: Pages connected to Git
-1. In Cloudflare Dashboard, open **Workers & Pages** and create/select a **Pages** project connected to `nafiulnahid17/video-tool-`.
-2. Set production branch to `main`.
-3. Set **Build command** to blank / none.
-4. Set **Build output directory** to `public`.
-5. In **Settings → Variables and Secrets**, add `OPENROUTER_API_KEY` as an encrypted secret for production (and preview if needed).
-6. Trigger a new deployment.
+1. In Cloudflare, open **Workers & Pages** and create or select the Worker named `frameforge-video-studio`.
+2. Connect the GitHub repository `nafiulnahid17/video-tool-` to Workers Builds if deploying automatically from Git.
+3. Set the deploy command to `npx wrangler deploy`. No build command is required.
+4. In the Worker settings, add `OPENROUTER_API_KEY` as an encrypted secret. Paste your OpenRouter API key.
+5. Deploy and open the Worker URL.
 
-### Option B — Deploy with Wrangler
-First create the Cloudflare Pages project in the dashboard. Then run this from the repository root:
+The repository's `wrangler.toml` declares `src/index.js` as the Worker entrypoint and `public` as its static-assets directory. The Worker handles `/api/*` requests and serves the website assets.
 
-```sh
-npx wrangler pages deploy public --project-name=frameforge-video-studio
-```
-
-If your existing Pages project has a different name, replace `frameforge-video-studio` with that exact project name. In Cloudflare Workers Builds, if a separate deploy command is required, use the command above — **not** `npx wrangler deploy`. Leave the build command empty because the static site has no build step.
-
-### API secret
-Set `OPENROUTER_API_KEY` in the Cloudflare dashboard as an encrypted secret. Never commit the real key in GitHub, a `.env` file, or frontend code. The secret is required for generation, but its absence does not usually cause the static deployment itself to fail.
+If you already created a **Pages** project for this repository, create/use a **Worker** deployment for this configuration rather than keeping it attached to the Pages deploy workflow. The code and config are now designed for Workers, not Pages.
 
 ## Local development
 
@@ -44,7 +34,8 @@ OPENROUTER_API_KEY=sk-or-v1-your-real-key
 Then run:
 
 ```sh
-npx wrangler pages dev public
+npm install
+npm run dev
 ```
 
 ## API routes
