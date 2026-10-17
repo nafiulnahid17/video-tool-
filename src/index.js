@@ -74,7 +74,7 @@ async function handleApi(request, env) {
     const ratios = ["16:9", "9:16", "1:1", "4:3", "3:4", "auto"];
     const resolutions = ["480p", "720p", "1080p", "4k"];
     if (ratios.includes(input.aspect_ratio)) payload.aspect_ratio = input.aspect_ratio;
-    if (Number.isInteger(input.duration) && input.duration >= 1 && input.duration <= 30) payload.duration = input.duration;
+    if (Number.isInteger(input.duration) && input.duration >= 1 && input.duration <= 60) payload.duration = input.duration;
     if (resolutions.includes(input.resolution)) payload.resolution = input.resolution;
     if (typeof input.generate_audio === "boolean") payload.generate_audio = input.generate_audio;
 
