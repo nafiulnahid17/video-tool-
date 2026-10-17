@@ -1,34 +1,36 @@
 # FrameForge — AI Video Studio
 
-A responsive AI video-generation website powered by OpenRouter and Cloudflare Pages Functions.
+A responsive AI video-generation app hosted on **Cloudflare Workers with Static Assets**, powered by OpenRouter.
 
 ## Features
+
 - Live OpenRouter video-model catalog
-- Responsive cinematic UI with prompt, aspect ratio, duration, resolution, and optional audio controls
+- Responsive cinematic interface with prompt, aspect ratio, duration, resolution, and optional audio controls
 - Asynchronous generation status polling, video preview, and download
-- OpenRouter API key stays server-side in a Cloudflare secret
-- Static website hosted from `public/`; API handled by Cloudflare Pages Functions
+- Server-side OpenRouter API key stored as a Cloudflare secret
+- Static frontend served from `public/`; API requests handled by the Worker in `src/index.js`
 
-## Deploy to the existing Cloudflare Pages project
+## Deploy as a Cloudflare Worker
 
-This repository uses **Cloudflare Pages**, including the `functions/` directory for API routes. Do not run `npx wrangler deploy` here; that command deploys a Worker and is the cause of the Pages-project warning/error.
+This is a **Workers** project, not a Cloudflare Pages project.
 
-1. In Cloudflare, open **Workers & Pages** and select the existing **Pages** project connected to this repository.
-2. Open **Settings → Builds & deployments** (the exact label may vary) and set the deploy command to:
-
-   ```sh
-   npx wrangler pages deploy public --project-name YOUR_ACTUAL_PAGES_PROJECT_NAME
-   ```
-
-   Replace `YOUR_ACTUAL_PAGES_PROJECT_NAME` with the exact Pages project name shown in the Cloudflare dashboard. Keep the repository root as the root directory. No frontend build step is required.
-3. Add `OPENROUTER_API_KEY` as an encrypted secret for the Pages project, then redeploy.
-4. Confirm the latest deployment is using the current `main` branch.
-
-The `wrangler.toml` now declares `pages_build_output_dir = "./public"`. API routes live in `functions/api/` and are deployed as Pages Functions.
+1. In Cloudflare, open **Workers & Pages** and create or select the **Worker** named `video-tool`. If a Pages project with that name exists, it is a separate deployment type; deploy this repository as a Worker instead.
+2. Connect GitHub repository `nafiulnahid17/video-tool-` on branch `main` using Cloudflare Workers Builds.
+3. Configure the build settings:
+   - Root directory: `/`
+   - Build command: leave blank
+   - Deploy command: `npx wrangler deploy`
+4. Ensure the Worker build uses the repository's `wrangler.toml`. It defines `src/index.js` as the entry point and `public/` as static assets.
+5. In the Worker settings, add `OPENROUTER_API_KEY` as an encrypted secret. Do not put the key in source code or commit it.
+6. Deploy, then test the Worker URL:
+   - `GET /api/models` — list available video models
+   - `POST /api/videos` — create a video generation job
+   - `GET /api/videos/:id` — poll generation status
+   - `GET /api/videos/:id/content?index=0` — download the generated video
 
 ## Local development
 
-Create a root-level `.dev.vars` file (never commit it) containing:
+Create a root-level `.dev.vars` file (it is ignored by Git) containing:
 
 ```dotenv
 OPENROUTER_API_KEY=sk-or-v1-your-real-key
@@ -41,13 +43,14 @@ npm install
 npm run dev
 ```
 
-## API routes
-- `GET /api/models` — live OpenRouter video-model catalog
-- `POST /api/videos` — submit a video generation job
-- `GET /api/videos/:id` — poll generation status
-- `GET /api/videos/:id/content?index=0` — retrieve generated video content
+Deploy manually with:
 
-OpenRouter generation is asynchronous. Model options vary; if a provider rejects a duration or resolution, select a supported configuration. Video generation may incur OpenRouter charges.
+```sh
+npm run deploy
+```
 
-## Security
-Anyone who can access the deployed site may trigger billable jobs using the configured key. Before sharing publicly, add authentication, rate limits/quotas, and abuse protection such as Cloudflare Turnstile.
+## Security and costs
+
+Anyone who can access the deployed site may be able to trigger billable video-generation jobs through the configured key. Before sharing publicly, add authentication, rate limits/quotas, and abuse protection such as Cloudflare Turnstile.
+
+Video generation is asynchronous and may incur OpenRouter charges. Supported durations, aspect ratios, and resolutions depend on the selected model.
