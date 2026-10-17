@@ -1,11 +1,11 @@
 {
-  "name": "frameforge-video-studio",
+  "name": "video-tool",
   "private": true,
   "version": "1.0.0",
-  "description": "FrameForge AI Video Studio for Cloudflare Pages and OpenRouter",
+  "description": "FrameForge AI Video Studio on Cloudflare Workers with OpenRouter",
   "scripts": {
-    "dev": "wrangler pages dev public",
-    "deploy": "wrangler pages deploy public"
+    "dev": "wrangler dev",
+    "deploy": "wrangler deploy"
   },
   "devDependencies": {
     "wrangler": "^4.40.0"
