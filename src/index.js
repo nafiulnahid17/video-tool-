@@ -78,6 +78,25 @@ async function handleApi(request, env) {
     if (resolutions.includes(input.resolution)) payload.resolution = input.resolution;
     if (typeof input.generate_audio === "boolean") payload.generate_audio = input.generate_audio;
 
+    if (Array.isArray(input.input_references)) {
+      if (input.input_references.length > 4) {
+        return json({ error: "Upload no more than 4 reference images." }, 400);
+      }
+      const references = [];
+      for (const ref of input.input_references) {
+        const dataUrl = ref?.image_url?.url;
+        if (ref?.type !== "image_url" || typeof dataUrl !== "string" ||
+            !/^data:image\/(png|jpeg|webp);base64,[A-Za-z0-9+/]+=*$/.test(dataUrl)) {
+          return json({ error: "Reference images must be uploaded PNG, JPEG, or WebP files." }, 400);
+        }
+        if (dataUrl.length > 2_900_000) {
+          return json({ error: "Each reference image must be 2 MB or smaller." }, 400);
+        }
+        references.push({ type: "image_url", image_url: { url: dataUrl } });
+      }
+      if (references.length) payload.input_references = references;
+    }
+
     try {
       const upstream = await fetch("https://openrouter.ai/api/v1/videos", {
         method: "POST",
